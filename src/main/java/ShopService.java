@@ -3,6 +3,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 @Data
@@ -21,7 +22,8 @@ public class ShopService {
     public Order addOrder(List<String> productIds) {
         List<Product> products = new ArrayList<>();
         for (String productId : productIds) {
-            Product productToOrder = productRepo.getProductById(productId);
+            Optional<Product> productToOrderOptional = productRepo.getProductById(productId);
+            Product productToOrder = productToOrderOptional.orElse(null);
             if (productToOrder == null) {
                 System.out.println("Product with ID " + productId + " could not be ordered.");
                 return null;
