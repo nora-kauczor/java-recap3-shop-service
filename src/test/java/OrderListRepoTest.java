@@ -50,14 +50,14 @@ class OrderListRepoTest {
     void addOrder() {
         //GIVEN
         OrderListRepo repo = new OrderListRepo();
-        Product product = new Product("1", "Apfel");
+        Product product = new Product("1", "Apple");
         Order newOrder = new Order("1", List.of(product), null, null);
 
         //WHEN
         Order actual = repo.addOrder(newOrder);
 
         //THEN
-        Product product1 = new Product("1", "Apfel");
+        Product product1 = new Product("1", "Apple");
         Order expected = new Order("1", List.of(product1), null, null);
         assertEquals(actual, expected);
         assertEquals(repo.getOrderById("1"), expected);
