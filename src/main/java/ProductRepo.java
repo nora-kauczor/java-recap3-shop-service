@@ -13,8 +13,7 @@ public class ProductRepo {
     public List<Product> getProducts() {
         return products;
     }
-// Modify the 'getProductById' method in your ProductRepo so that it
-// returns an Optional if the product exists, otherwise an empty Optional.
+
 
 
     public Optional<Product> getProductById(String id) {
@@ -27,16 +26,6 @@ public class ProductRepo {
     }
 
 
-
-
-//    public Product getProductById(String id) {
-//        for (Product product : products) {
-//            if (product.id().equals(id)) {
-//                return product;
-//            }
-//        }
-//        return null;
-//    }
 
     public Product addProduct(Product newProduct) {
         products.add(newProduct);
