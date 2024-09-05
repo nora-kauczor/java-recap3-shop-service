@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 @Data
 @RequiredArgsConstructor
 public class ShopService {
@@ -13,12 +14,12 @@ public class ShopService {
     private OrderRepo orderRepo = new OrderMapRepo();
 
 
-//    Add an 'updateOrder' method in the ShopService that updates the Order based on
+    //    Add an 'updateOrder' method in the ShopService that updates the Order based on
 //    an orderId and a new order status. Use the Lombok @With annotation for this.
-public void updateOrder(String orderId){
-    Order order = orderRepo.getOrderById(orderId);
-
-}
+    public Order updateOrder(String orderId, OrderStatus newStatus) {
+        Order order = orderRepo.getOrderById(orderId);
+        return orderRepo.getOrderById(orderId).withStatus(newStatus);
+    }
 
     public List<Order> getOrdersByStatus(OrderStatus requiredStatus) {
         return orderRepo.getOrders().stream()
@@ -26,9 +27,9 @@ public void updateOrder(String orderId){
                 .collect(Collectors.toList());
     }
 
-// Modify the 'addOrder' method in the ShopService so that an exception is thrown if the
+    // Modify the 'addOrder' method in the ShopService so that an exception is thrown if the
 // product does not exist.
-    public Order addOrder (List<String> productIds) throws Exception {
+    public Order addOrder(List<String> productIds) throws Exception {
         List<Product> products = new ArrayList<>();
         for (String productId : productIds) {
             Optional<Product> productToOrderOptional = productRepo.getProductById(productId);
@@ -62,9 +63,6 @@ public void updateOrder(String orderId){
 //
 //        return orderRepo.addOrder(newOrder);
 //    }
-
-
-
 
 
 }
