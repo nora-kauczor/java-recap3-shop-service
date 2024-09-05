@@ -10,6 +10,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class ShopServiceTest {
 
     @Test
+    void updateOrder() {
+        ShopService shopService = new ShopService();
+        OrderRepo repo = new OrderMapRepo();
+        Product product0 = new Product("1", "Apple");
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING);
+        shopService.setOrderRepo(repo);
+        Order        expected = new Order("1", List.of(product0), OrderStatus.IN_DELIVERY);
+        Order   actual= shopService.updateOrder("1", OrderStatus.IN_DELIVERY);
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void getOrdersByStatus() {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
@@ -33,7 +45,7 @@ class ShopServiceTest {
 
 
     @Test
-    void addOrderTest() {
+    void addOrderTest() throws Exception {
         //GIVEN
         ShopService shopService = new ShopService();
         List<String> productsIds = List.of("1");
@@ -42,13 +54,14 @@ class ShopServiceTest {
         Order actual = shopService.addOrder(productsIds);
 
         //THEN
-        Order expected = new Order("-1", List.of(new Product("1", "Apfel")), OrderStatus.IN_DELIVERY);
+        Order expected = new Order("-1", List.of(new Product("1", "Apfel")),
+                OrderStatus.IN_DELIVERY);
         assertEquals(expected.products(), actual.products());
         assertNotNull(expected.id());
     }
 
     @Test
-    void addOrderTest_whenInvalidProductId_expectNull() {
+    void addOrderTest_whenInvalidProductId_expectNull() throws Exception {
         //GIVEN
         ShopService shopService = new ShopService();
         List<String> productsIds = List.of("1", "2");
