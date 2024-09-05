@@ -12,30 +12,53 @@ public class ShopService {
     private ProductRepo productRepo = new ProductRepo();
     private OrderRepo orderRepo = new OrderMapRepo();
 
-    public Map<String, Order> getOldestOrderPerStatus(OrderStatus status) {
-        List<Order> inDeliveryOrders = getOrdersByStatus(OrderStatus.IN_DELIVERY);
-        List<Order> processingOrders = getOrdersByStatus(OrderStatus.PROCESSING);
-        List<Order> completedOrders = getOrdersByStatus(OrderStatus.COMPLETED);
-        Order oldestOrderInDelivery = getOldestOrder(inDeliveryOrders);
-        Order oldestProcessedOrder = getOldestOrder(processingOrders);
-        Order oldestCompletedOrder = getOldestOrder(completedOrders);
-return new HashMap<>(Map.ofEntries(Map.entry(oldestProcessedOrder.id(), oldestCompletedOrder),
-        Map.entry(oldestOrderInDelivery.id(), oldestOrderInDelivery),
-        Map.entry(oldestProcessedOrder.id(), oldestProcessedOrder)));
+    public Map<OrderStatus, Order> getOldestOrderPerStatus() {
+        List<Order> inDeliveryOrders = null;
+        List<Order> processingOrders = null;
+        List<Order> completedOrders = null;
+        try {
+            inDeliveryOrders = getOrdersByStatus(OrderStatus.IN_DELIVERY);
+            processingOrders = getOrdersByStatus(OrderStatus.PROCESSING);
+            completedOrders = getOrdersByStatus(OrderStatus.COMPLETED);
+        } catch (Exception exception) {
+        }
+        Order oldestOrderInDelivery = null;
+        Order oldestProcessedOrder = null;
+        Order oldestCompletedOrder = null;
+        try {
+            oldestOrderInDelivery = getOldestOrder(inDeliveryOrders);
+            oldestProcessedOrder = getOldestOrder(processingOrders);
+            oldestCompletedOrder = getOldestOrder(completedOrders);
+        } catch (Exception exception) {
+        }
+        Map<OrderStatus, Order> oldestOrdersPerStatus = new HashMap<>();
+        oldestOrdersPerStatus.put(OrderStatus.COMPLETED, oldestCompletedOrder);
+        oldestOrdersPerStatus.put(OrderStatus.IN_DELIVERY, oldestOrderInDelivery);
+        oldestOrdersPerStatus.put(OrderStatus.PROCESSING, oldestProcessedOrder);
+        return oldestOrdersPerStatus;
     }
 
-    public Order getOldestOrder(List<Order> orders) {
+    public static Order getOldestOrder(List<Order> orders) throws Exception {
+        if (orders == null) {
+            throw new Exception("Couldn't get oldest order of list because orders is null.");
+        }
         List<ZonedDateTime> timeStamps = orders.stream().map(order -> order.ordered()).collect(Collectors.toList());
         ZonedDateTime oldest = Collections.min(timeStamps);
-        return orders.stream().filter(order -> order.ordered().equals(oldest)).collect(Collectors.toList()).getFirst();
+        return orders.stream().filter(order -> order.ordered().equals(oldest)).collect(Collectors.toList()).get(0);
     }
 
-    public Order updateOrder(String orderId, OrderStatus newStatus) {
-        Order order = orderRepo.getOrderById(orderId);
+    public Order updateOrder(String orderId, OrderStatus newStatus) throws Exception {
+        if (orderRepo.getOrderById(orderId) == null) {
+            throw new Exception("Couldn't update order because an order with " +
+                    "the given ID doesn't exist.");
+        }
         return orderRepo.getOrderById(orderId).withStatus(newStatus);
     }
 
-    public List<Order> getOrdersByStatus(OrderStatus requiredStatus) {
+    public List<Order> getOrdersByStatus(OrderStatus requiredStatus) throws Exception {
+        if (orderRepo.getOrders() == null) {
+            throw new Exception("Couldn't get orders with specific status because orders is null.");
+        }
         return orderRepo.getOrders().stream()
                 .filter(order -> order.status() == requiredStatus)
                 .collect(Collectors.toList());
@@ -58,24 +81,4 @@ return new HashMap<>(Map.ofEntries(Map.entry(oldestProcessedOrder.id(), oldestCo
 
         return orderRepo.addOrder(newOrder);
     }
-
-//    public Order addOrder(List<String> productIds) {
-//        List<Product> products = new ArrayList<>();
-//        for (String productId : productIds) {
-//            Optional<Product> productToOrderOptional = productRepo.getProductById(productId);
-//            Product productToOrder = productToOrderOptional.orElse(null);
-//            if (productToOrder == null) {
-//                System.out.println("Product with ID " + productId + " could not be ordered.");
-//                return null;
-//            }
-//            products.add(productToOrder);
-//        }
-//
-//        Order newOrder = new Order(UUID.randomUUID().toString(), products,
-//                OrderStatus.PROCESSING);
-//
-//        return orderRepo.addOrder(newOrder);
-//    }
-
-
 }
