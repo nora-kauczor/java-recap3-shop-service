@@ -14,9 +14,9 @@ class ShopServiceTest {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
         Product product0 = new Product("1", "Apple");
-        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING);
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, null);
         shopService.setOrderRepo(repo);
-        Order        expected = new Order("1", List.of(product0), OrderStatus.IN_DELIVERY);
+        Order        expected = new Order("1", List.of(product0), OrderStatus.IN_DELIVERY, null);
         Order   actual= shopService.updateOrder("1", OrderStatus.IN_DELIVERY);
         assertEquals(expected, actual);
     }
@@ -26,13 +26,13 @@ class ShopServiceTest {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
         Product product0 = new Product("1", "Apple");
-        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING);
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, null);
         Product product1 = new Product("2", "Banana");
-        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING);
+        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING, null);
         Product product2 = new Product("3", "Orange");
-        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.COMPLETED);
+        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.COMPLETED, null);
         Product product3 = new Product("4", "Pear");
-        Order newOrder3 = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY);
+        Order newOrder3 = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY, null);
         repo.addOrder(newOrder0);
         repo.addOrder(newOrder1);
         repo.addOrder(newOrder2);
@@ -55,7 +55,7 @@ class ShopServiceTest {
 
         //THEN
         Order expected = new Order("-1", List.of(new Product("1", "Apfel")),
-                OrderStatus.IN_DELIVERY);
+                OrderStatus.IN_DELIVERY, null);
         assertEquals(expected.products(), actual.products());
         assertNotNull(expected.id());
     }
