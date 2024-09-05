@@ -1,10 +1,36 @@
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShopServiceTest {
+
+    @Test
+    void getOrdersByStatus() {
+        ShopService shopService = new ShopService();
+        OrderRepo repo = new OrderMapRepo();
+        Product product0 = new Product("1", "Apple");
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING);
+        Product product1 = new Product("2", "Banana");
+        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING);
+        Product product2 = new Product("3", "Orange");
+        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.COMPLETED);
+        Product product3 = new Product("4", "Pear");
+        Order newOrder3 = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY);
+        repo.addOrder(newOrder0);
+        repo.addOrder(newOrder1);
+        repo.addOrder(newOrder2);
+        repo.addOrder(newOrder3);
+        shopService.setOrderRepo(repo);
+        List<Order> expected = new ArrayList<>(Arrays.asList(newOrder0, newOrder1));
+        List<Order> actual = shopService.getOrdersByStatus(OrderStatus.PROCESSING);
+        assertEquals(expected, actual);
+    }
+
 
     @Test
     void addOrderTest() {
