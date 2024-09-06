@@ -23,18 +23,17 @@ class ShopServiceTest {
         repo.addOrder(olderOrderProcessing);
         Order newerOrderInDelivery = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY,
                 ZonedDateTime.parse("2024-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
-        Order olderOrderInDelivery = new Order(IdService.generateId(), List.of(product3, product2), OrderStatus.IN_DELIVERY,
+        Order olderOrderInDelivery = new Order("adie78", List.of(product3, product2), OrderStatus.IN_DELIVERY,
                 ZonedDateTime.parse("2010-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
         repo.addOrder(newerOrderInDelivery);
         repo.addOrder(olderOrderInDelivery);
         Order newerOrderCompleted = new Order("3", List.of(product2), OrderStatus.COMPLETED,
                 ZonedDateTime.parse("2019-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
-        Order olderOrderCompleted = new Order(IdService.generateId(), List.of(product0, product1, product3), OrderStatus.COMPLETED,
+        Order olderOrderCompleted = new Order("6875494", List.of(product0, product1, product3), OrderStatus.COMPLETED,
                 ZonedDateTime.parse("2000-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
         repo.addOrder(newerOrderCompleted);
         repo.addOrder(olderOrderCompleted);
         shopService.setOrderRepo(repo);
-        System.out.println("olderOrderCompleted at: " + olderOrderCompleted.ordered());
         Map<OrderStatus, Order> expected = new HashMap<>(Map.ofEntries(
                 Map.entry(OrderStatus.COMPLETED, olderOrderCompleted),
                 Map.entry(OrderStatus.IN_DELIVERY, olderOrderInDelivery),
@@ -45,16 +44,33 @@ class ShopServiceTest {
         assertEquals(expected, actual);
     }
 
-    //////////////////////////////////////// GET OLDEST ORDER ////////////////////////////////////////
-
+    //////////////////////////////////////// GET OLDEST ORDER OF STATUS ////////////////////////////////////////
     @Test
-    void getOldestOrder_TestException() {
+    void getOldestOrderOfStatus() {
         ShopService shopService = new ShopService();
-        try {shopService.getOldestOrder(new ArrayList<>());
-            fail("Expected exception wasn't thrown");}
-        catch (Exception exception) {}
+        OrderRepo repo = new OrderMapRepo();
+        Product product0 = new Product("1", "Apple");
+        Product product1 = new Product("2", "Banana");
+        Product product2 = new Product("3", "Orange");
+        Product product3 = new Product("4", "Pear");
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, ZonedDateTime.now());
+        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING, ZonedDateTime.now());
+        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.PROCESSING, ZonedDateTime.now());
+        Order newOrder5 = new Order(IdService.generateId(), List.of(product0,
+                product1, product3), OrderStatus.PROCESSING, ZonedDateTime.now());
+        repo.addOrder(newOrder0);
+        repo.addOrder(newOrder1);
+        repo.addOrder(newOrder2);
+        repo.addOrder(newOrder5);
+        shopService.setOrderRepo(repo);
+        List<Order> orders = repo.getOrders();
+        Order expected = newOrder0;
+        Order actual = shopService.getOldestOrderOfStatus(OrderStatus.PROCESSING);
+        assertEquals(expected, actual);
 
     }
+    //////////////////////////////////////// GET OLDEST ORDER ////////////////////////////////////////
+
 
     @Test
     void getOldestOrder() {
@@ -76,9 +92,35 @@ class ShopServiceTest {
         shopService.setOrderRepo(repo);
         List<Order> orders = repo.getOrders();
         Order expected = newOrder0;
-        Order actual = null;
+        Order actual = shopService.getOldestOrder(orders);
+        assertEquals(expected, actual);
+    }
+
+
+    //////////////////////////////////// GET ORDERS BY STATUS ///////////////////////////////////
+
+
+    @Test
+    void getOrdersByStatus() {
+        ShopService shopService = new ShopService();
+        OrderRepo repo = new OrderMapRepo();
+        Product product0 = new Product("1", "Apple");
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, null);
+        Product product1 = new Product("2", "Banana");
+        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING, null);
+        Product product2 = new Product("3", "Orange");
+        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.COMPLETED, null);
+        Product product3 = new Product("4", "Pear");
+        Order newOrder3 = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY, null);
+        repo.addOrder(newOrder0);
+        repo.addOrder(newOrder1);
+        repo.addOrder(newOrder2);
+        repo.addOrder(newOrder3);
+        shopService.setOrderRepo(repo);
+        List<Order> expected = new ArrayList<>(Arrays.asList(newOrder0, newOrder1));
+        List<Order> actual = null;
         try {
-            actual = shopService.getOldestOrder(orders);
+            actual = shopService.getOrdersByStatus(OrderStatus.PROCESSING);
         } catch (Exception exception) {
         }
         assertEquals(expected, actual);
@@ -108,43 +150,6 @@ class ShopServiceTest {
         try {
             actual = shopService.updateOrder("1", OrderStatus.IN_DELIVERY);
             System.out.println("actual inside try:" + actual);
-        } catch (Exception exception) {
-        }
-        assertEquals(expected, actual);
-    }
-
-    //////////////////////////////////// GET ORDERS BY STATUS ///////////////////////////////////
-    @Test
-    void getOrdersByStatus_TestException() {
-        ShopService shopService = new ShopService();
-        assertThrows(
-                Exception.class, () -> shopService.getOrdersByStatus(OrderStatus.PROCESSING)
-        );
-    }
-
-    // Warum hier keine Fehlermeldung, dass throws Exception in die Signatur gehört?
-    //Aber bei add schon
-    @Test
-    void getOrdersByStatus() {
-        ShopService shopService = new ShopService();
-        OrderRepo repo = new OrderMapRepo();
-        Product product0 = new Product("1", "Apple");
-        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, null);
-        Product product1 = new Product("2", "Banana");
-        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING, null);
-        Product product2 = new Product("3", "Orange");
-        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.COMPLETED, null);
-        Product product3 = new Product("4", "Pear");
-        Order newOrder3 = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY, null);
-        repo.addOrder(newOrder0);
-        repo.addOrder(newOrder1);
-        repo.addOrder(newOrder2);
-        repo.addOrder(newOrder3);
-        shopService.setOrderRepo(repo);
-        List<Order> expected = new ArrayList<>(Arrays.asList(newOrder0, newOrder1));
-        List<Order> actual = null;
-        try {
-            actual = shopService.getOrdersByStatus(OrderStatus.PROCESSING);
         } catch (Exception exception) {
         }
         assertEquals(expected, actual);

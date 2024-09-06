@@ -13,24 +13,9 @@ public class ShopService {
     private OrderRepo orderRepo = new OrderMapRepo();
 
     public Map<OrderStatus, Order> getOldestOrderPerStatus() {
-        List<Order> inDeliveryOrders = null;
-        List<Order> processingOrders = null;
-        List<Order> completedOrders = null;
-        try {
-            inDeliveryOrders = getOrdersByStatus(OrderStatus.IN_DELIVERY);
-            processingOrders = getOrdersByStatus(OrderStatus.PROCESSING);
-            completedOrders = getOrdersByStatus(OrderStatus.COMPLETED);
-        } catch (Exception exception) {
-        }
-        Order oldestOrderInDelivery = null;
-        Order oldestProcessedOrder = null;
-        Order oldestCompletedOrder = null;
-        try {
-            oldestOrderInDelivery = getOldestOrder(inDeliveryOrders);
-            oldestProcessedOrder = getOldestOrder(processingOrders);
-            oldestCompletedOrder = getOldestOrder(completedOrders);
-        } catch (Exception exception) {
-        }
+        Order oldestOrderInDelivery = getOldestOrderOfStatus(OrderStatus.IN_DELIVERY);
+        Order oldestProcessedOrder = getOldestOrderOfStatus(OrderStatus.PROCESSING);
+        Order oldestCompletedOrder = getOldestOrderOfStatus(OrderStatus.COMPLETED);
         Map<OrderStatus, Order> oldestOrdersPerStatus = new HashMap<>();
         oldestOrdersPerStatus.put(OrderStatus.COMPLETED, oldestCompletedOrder);
         oldestOrdersPerStatus.put(OrderStatus.IN_DELIVERY, oldestOrderInDelivery);
@@ -38,10 +23,12 @@ public class ShopService {
         return oldestOrdersPerStatus;
     }
 
-    public Order getOldestOrder(List<Order> orders) throws Exception {
-        if (orders == null || orders.isEmpty()) {
-            throw new Exception("Couldn't get oldest order of list because orders list is null or empty.");
-        }
+    public Order getOldestOrderOfStatus(OrderStatus status) {
+        List<Order> ordersOfStatus = getOrdersByStatus(status);
+        return getOldestOrder(ordersOfStatus);
+    }
+
+    public Order getOldestOrder(List<Order> orders) {
         List<ZonedDateTime> timeStamps = orders.stream().map(order -> order.ordered())
                 .collect(Collectors.toList());
         ZonedDateTime oldest = Collections.min(timeStamps);
@@ -49,22 +36,21 @@ public class ShopService {
                 .collect(Collectors.toList()).get(0);
     }
 
+    public List<Order> getOrdersByStatus(OrderStatus requiredStatus) {
+        return orderRepo.getOrders().stream()
+                .filter(order -> order.status() == requiredStatus)
+                .collect(Collectors.toList());
+    }
+
     public Order updateOrder(String orderId, OrderStatus newStatus) throws Exception {
         if (orderRepo.getOrderById(orderId) == null) {
-            throw new Exception("Couldn't update order because an order with " +
+            throw new OrderDoesntExistException("Couldn't update order because an order with " +
                     "the given ID doesn't exist.");
         }
         return orderRepo.getOrderById(orderId).withStatus(newStatus);
     }
 
-    public List<Order> getOrdersByStatus(OrderStatus requiredStatus) throws Exception {
-        if (orderRepo.getOrders().isEmpty()) {
-            throw new Exception("Couldn't get orders with specific status because orders list is empty.");
-        }
-        return orderRepo.getOrders().stream()
-                .filter(order -> order.status() == requiredStatus)
-                .collect(Collectors.toList());
-    }
+
 
     public Order addOrder(List<String> productIds) throws Exception {
         List<Product> orderedProducts = new ArrayList<>();
@@ -72,7 +58,7 @@ public class ShopService {
             Optional<Product> productToOrderOptional = productRepo.getProductById(productId);
             Product productToOrder = productToOrderOptional.orElse(null); // TODO
             if (productToOrder == null) {
-                throw new Exception("Product with ID " + productId + " could not be ordered.");
+                throw new ProductDoesntExistException("Product with ID " + productId + " could not be ordered.");
             }
             orderedProducts.add(productToOrder);
         }
