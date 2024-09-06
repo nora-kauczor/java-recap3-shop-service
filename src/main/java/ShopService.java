@@ -38,13 +38,15 @@ public class ShopService {
         return oldestOrdersPerStatus;
     }
 
-    public static Order getOldestOrder(List<Order> orders) throws Exception {
-        if (orders == null) {
-            throw new Exception("Couldn't get oldest order of list because orders is null.");
+    public Order getOldestOrder(List<Order> orders) throws Exception {
+        if (orders == null || orders.isEmpty()) {
+            throw new Exception("Couldn't get oldest order of list because orders list is null or empty.");
         }
-        List<ZonedDateTime> timeStamps = orders.stream().map(order -> order.ordered()).collect(Collectors.toList());
+        List<ZonedDateTime> timeStamps = orders.stream().map(order -> order.ordered())
+                .collect(Collectors.toList());
         ZonedDateTime oldest = Collections.min(timeStamps);
-        return orders.stream().filter(order -> order.ordered().equals(oldest)).collect(Collectors.toList()).get(0);
+        return orders.stream().filter(order -> order.ordered().equals(oldest))
+                .collect(Collectors.toList()).get(0);
     }
 
     public Order updateOrder(String orderId, OrderStatus newStatus) throws Exception {
@@ -56,27 +58,26 @@ public class ShopService {
     }
 
     public List<Order> getOrdersByStatus(OrderStatus requiredStatus) throws Exception {
-        if (orderRepo.getOrders() == null) {
-            throw new Exception("Couldn't get orders with specific status because orders is null.");
+        if (orderRepo.getOrders().isEmpty()) {
+            throw new Exception("Couldn't get orders with specific status because orders list is empty.");
         }
         return orderRepo.getOrders().stream()
                 .filter(order -> order.status() == requiredStatus)
                 .collect(Collectors.toList());
     }
 
-
     public Order addOrder(List<String> productIds) throws Exception {
-        List<Product> products = new ArrayList<>();
+        List<Product> orderedProducts = new ArrayList<>();
         for (String productId : productIds) {
             Optional<Product> productToOrderOptional = productRepo.getProductById(productId);
-            Product productToOrder = productToOrderOptional.orElse(null);
+            Product productToOrder = productToOrderOptional.orElse(null); // TODO
             if (productToOrder == null) {
                 throw new Exception("Product with ID " + productId + " could not be ordered.");
             }
-            products.add(productToOrder);
+            orderedProducts.add(productToOrder);
         }
 
-        Order newOrder = new Order(UUID.randomUUID().toString(), products,
+        Order newOrder = new Order(UUID.randomUUID().toString(), orderedProducts,
                 OrderStatus.PROCESSING, ZonedDateTime.now());
 
         return orderRepo.addOrder(newOrder);

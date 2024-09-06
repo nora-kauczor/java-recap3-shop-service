@@ -6,7 +6,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShopServiceTest {
-
+    /////////////////////////////////////// GET OLDEST PER STATUS /////////////////////////////
     @Test
     void getOldestOrderPerStatus() {
         ShopService shopService = new ShopService();
@@ -34,8 +34,7 @@ class ShopServiceTest {
         repo.addOrder(newerOrderCompleted);
         repo.addOrder(olderOrderCompleted);
         shopService.setOrderRepo(repo);
-        List<Order> orders = repo.getOrders();
-        System.out.println("olderOrderCompleted at: "+olderOrderCompleted.ordered());
+        System.out.println("olderOrderCompleted at: " + olderOrderCompleted.ordered());
         Map<OrderStatus, Order> expected = new HashMap<>(Map.ofEntries(
                 Map.entry(OrderStatus.COMPLETED, olderOrderCompleted),
                 Map.entry(OrderStatus.IN_DELIVERY, olderOrderInDelivery),
@@ -46,6 +45,16 @@ class ShopServiceTest {
         assertEquals(expected, actual);
     }
 
+    //////////////////////////////////////// GET OLDEST ORDER ////////////////////////////////////////
+
+    @Test
+    void getOldestOrder_TestException() {
+        ShopService shopService = new ShopService();
+        try {shopService.getOldestOrder(new ArrayList<>());
+            fail("Expected exception wasn't thrown");}
+        catch (Exception exception) {}
+
+    }
 
     @Test
     void getOldestOrder() {
@@ -69,29 +78,52 @@ class ShopServiceTest {
         Order expected = newOrder0;
         Order actual = null;
         try {
-            actual = ShopService.getOldestOrder(orders);
+            actual = shopService.getOldestOrder(orders);
         } catch (Exception exception) {
         }
         assertEquals(expected, actual);
     }
 
+    //////////////////////////////////////// UPDATE ORDER ////////////////////////////////////////
+    @Test
+    void updateOrder_TestException() {
+        ShopService shopService = new ShopService();
+        assertThrows(
+                Exception.class, () -> shopService.updateOrder("234",
+                        OrderStatus.PROCESSING)
+        );
+    }
 
     @Test
     void updateOrder() {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
         Product product0 = new Product("1", "Apple");
-        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, null);
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING,
+                null);
+        repo.addOrder(newOrder0);
         shopService.setOrderRepo(repo);
         Order expected = new Order("1", List.of(product0), OrderStatus.IN_DELIVERY, null);
         Order actual = null;
         try {
             actual = shopService.updateOrder("1", OrderStatus.IN_DELIVERY);
+            System.out.println("actual inside try:" + actual);
         } catch (Exception exception) {
         }
         assertEquals(expected, actual);
     }
 
+    //////////////////////////////////// GET ORDERS BY STATUS ///////////////////////////////////
+    @Test
+    void getOrdersByStatus_TestException() {
+        ShopService shopService = new ShopService();
+        assertThrows(
+                Exception.class, () -> shopService.getOrdersByStatus(OrderStatus.PROCESSING)
+        );
+    }
+
+    // Warum hier keine Fehlermeldung, dass throws Exception in die Signatur gehört?
+    //Aber bei add schon
     @Test
     void getOrdersByStatus() {
         ShopService shopService = new ShopService();
@@ -118,9 +150,17 @@ class ShopServiceTest {
         assertEquals(expected, actual);
     }
 
+    //////////////////////////////////////// ADD ORDER ////////////////////////////////////////
+    @Test
+    void addOrder_TestException() throws Exception {
+        ShopService shopService = new ShopService();
+        assertThrows(
+                Exception.class, () -> shopService.addOrder(List.of("XY"))
+        );
+    }
 
     @Test
-    void addOrderTest() throws Exception {
+    void addOrder_Test() throws Exception {
         //GIVEN
         ShopService shopService = new ShopService();
         List<String> productsIds = List.of("1");
@@ -129,7 +169,7 @@ class ShopServiceTest {
         Order actual = shopService.addOrder(productsIds);
 
         //THEN
-        Order expected = new Order("-1", List.of(new Product("1", "Apfel")),
+        Order expected = new Order("-1", List.of(new Product("1", "Apple")),
                 OrderStatus.IN_DELIVERY, null);
         assertEquals(expected.products(), actual.products());
     }

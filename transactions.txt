@@ -1,3 +1,6 @@
+// Adds a new order. The order should contain the given
+// product IDs. The order should have the status PROCESSING
+
 addOrder A 1 2 3
 addOrder B 4 1
 setStatus A COMPLETED
