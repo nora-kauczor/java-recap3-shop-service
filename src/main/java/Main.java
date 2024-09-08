@@ -1,15 +1,19 @@
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.UUID;
-import java.util.stream.Stream;
+
 
 public class Main {
     public static void main(String[] args) throws Exception {
         FileStreamer fileStreamer = new FileStreamer();
-        fileStreamer.streamFile("../../src/transactions.txt");
+        try {
+            fileStreamer.streamFile("src/transactions.txt");
+        } catch (IOException e) {
+            System.out.println("An IO exception occurred.");
+        }
 
 
         ShopService myShopService = new ShopService();
