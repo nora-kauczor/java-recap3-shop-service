@@ -1,11 +1,17 @@
 import java.lang.reflect.Array;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        FileStreamer fileStreamer = new FileStreamer();
+        fileStreamer.streamFile("../../src/transactions.txt");
+
+
         ShopService myShopService = new ShopService();
         Product lamp = new Product(IdService.generateId(), "Lamp");
         Product chair = new Product(IdService.generateId(), "Chair");
@@ -17,6 +23,8 @@ public class Main {
         myShopService.getOrderRepo().addOrder(order1);
         myShopService.addOrder(new ArrayList<>(Arrays.asList(blanket.id())));
         myShopService.addOrder(new ArrayList<>(Arrays.asList(blanket.id(), clock.id())));
+
+
     }
 
 }

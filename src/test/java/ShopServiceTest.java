@@ -8,6 +8,34 @@ import static org.junit.jupiter.api.Assertions.*;
 class ShopServiceTest {
     /////////////////////////////////////// GET OLDEST PER STATUS /////////////////////////////
     @Test
+    void getOldestOrderPerStatus_testWithObjectsOfOneStatus(){
+        ShopService shopService = new ShopService();
+        OrderRepo repo = new OrderMapRepo();
+        Product product0 = new Product("1", "Apple");
+        Product product1 = new Product("2", "Banana");
+        Product product2 = new Product("3", "Orange");
+        Product product3 = new Product("4", "Pear");
+        Order newerOrderCompleted = new Order("3", List.of(product2),
+                OrderStatus.COMPLETED,
+                ZonedDateTime.parse("2019-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
+        Order olderOrderCompleted = new Order("6875494",
+                List.of(product0, product1, product3), OrderStatus.COMPLETED,
+                ZonedDateTime.parse("2000-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
+        repo.addOrder(newerOrderCompleted);
+        repo.addOrder(olderOrderCompleted);
+        shopService.setOrderRepo(repo);
+        Map<OrderStatus, Order> expected = new HashMap<>(Map.ofEntries(
+                Map.entry(OrderStatus.COMPLETED, olderOrderCompleted)
+        ));
+        Map<OrderStatus, Order> actual = null;
+        try {
+            actual = shopService.getOldestOrdersPerStatus();
+        } catch (OrderDoesntExistException exception) {
+        }
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void getOldestOrderPerStatus() {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
@@ -15,21 +43,27 @@ class ShopServiceTest {
         Product product1 = new Product("2", "Banana");
         Product product2 = new Product("3", "Orange");
         Product product3 = new Product("4", "Pear");
-        Order newerOrderProcessing = new Order("1", List.of(product0), OrderStatus.PROCESSING,
+        Order newerOrderProcessing = new Order("1", List.of(product0),
+                OrderStatus.PROCESSING,
                 ZonedDateTime.parse("2021-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
-        Order olderOrderProcessing = new Order("2", List.of(product1), OrderStatus.PROCESSING,
+        Order olderOrderProcessing = new Order("2", List.of(product1),
+                OrderStatus.PROCESSING,
                 ZonedDateTime.parse("2010-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
         repo.addOrder(newerOrderProcessing);
         repo.addOrder(olderOrderProcessing);
-        Order newerOrderInDelivery = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY,
+        Order newerOrderInDelivery = new Order("4", List.of(product3),
+                OrderStatus.IN_DELIVERY,
                 ZonedDateTime.parse("2024-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
-        Order olderOrderInDelivery = new Order("adie78", List.of(product3, product2), OrderStatus.IN_DELIVERY,
+        Order olderOrderInDelivery = new Order("adie78", List.of(product3, product2),
+                OrderStatus.IN_DELIVERY,
                 ZonedDateTime.parse("2010-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
         repo.addOrder(newerOrderInDelivery);
         repo.addOrder(olderOrderInDelivery);
-        Order newerOrderCompleted = new Order("3", List.of(product2), OrderStatus.COMPLETED,
+        Order newerOrderCompleted = new Order("3", List.of(product2),
+                OrderStatus.COMPLETED,
                 ZonedDateTime.parse("2019-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
-        Order olderOrderCompleted = new Order("6875494", List.of(product0, product1, product3), OrderStatus.COMPLETED,
+        Order olderOrderCompleted = new Order("6875494",
+                List.of(product0, product1, product3), OrderStatus.COMPLETED,
                 ZonedDateTime.parse("2000-09-05T16:21:48.907793+02:00[Europe/Berlin]"));
         repo.addOrder(newerOrderCompleted);
         repo.addOrder(olderOrderCompleted);
@@ -40,22 +74,31 @@ class ShopServiceTest {
                 Map.entry(OrderStatus.PROCESSING, olderOrderProcessing)
 
         ));
-        Map<OrderStatus, Order> actual = shopService.getOldestOrderPerStatus();
+        Map<OrderStatus, Order> actual = null;
+        try {
+            actual = shopService.getOldestOrdersPerStatus();
+        } catch (OrderDoesntExistException exception) {
+        }
         assertEquals(expected, actual);
     }
 
-    //////////////////////////////////////// GET OLDEST ORDER OF STATUS ////////////////////////////////////////
+    ///////////////////////////////////// GET OLDEST ORDER OF CERTAIN STATUS ////////////////////////////////////////
+
+
     @Test
-    void getOldestOrderOfStatus() {
+    void getOldestOrderOfCertainStatus_Test() {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
         Product product0 = new Product("1", "Apple");
         Product product1 = new Product("2", "Banana");
         Product product2 = new Product("3", "Orange");
         Product product3 = new Product("4", "Pear");
-        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, ZonedDateTime.now());
-        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING, ZonedDateTime.now());
-        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.PROCESSING, ZonedDateTime.now());
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
+        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
+        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
         Order newOrder5 = new Order(IdService.generateId(), List.of(product0,
                 product1, product3), OrderStatus.PROCESSING, ZonedDateTime.now());
         repo.addOrder(newOrder0);
@@ -63,26 +106,31 @@ class ShopServiceTest {
         repo.addOrder(newOrder2);
         repo.addOrder(newOrder5);
         shopService.setOrderRepo(repo);
-        List<Order> orders = repo.getOrders();
         Order expected = newOrder0;
-        Order actual = shopService.getOldestOrderOfStatus(OrderStatus.PROCESSING);
+        Order actual = null;
+        try {
+            actual = shopService.getOldestOrderOfCertainStatus(OrderStatus.PROCESSING);
+        } catch (OrderDoesntExistException exception) {
+        }
+        ;
         assertEquals(expected, actual);
-
     }
     //////////////////////////////////////// GET OLDEST ORDER ////////////////////////////////////////
 
-
     @Test
-    void getOldestOrder() {
+    void getOldestOrder_Test() {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
         Product product0 = new Product("1", "Apple");
         Product product1 = new Product("2", "Banana");
         Product product2 = new Product("3", "Orange");
         Product product3 = new Product("4", "Pear");
-        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, ZonedDateTime.now());
-        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING, ZonedDateTime.now());
-        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.PROCESSING, ZonedDateTime.now());
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
+        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
+        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
         Order newOrder5 = new Order(IdService.generateId(), List.of(product0,
                 product1, product3), OrderStatus.PROCESSING, ZonedDateTime.now());
         repo.addOrder(newOrder0);
@@ -92,26 +140,30 @@ class ShopServiceTest {
         shopService.setOrderRepo(repo);
         List<Order> orders = repo.getOrders();
         Order expected = newOrder0;
-        Order actual = shopService.getOldestOrder(orders);
+        Order actual = shopService.getOldestOrder(orders).orElse(null);
         assertEquals(expected, actual);
     }
 
 
-    //////////////////////////////////// GET ORDERS BY STATUS ///////////////////////////////////
+    //////////////////////////////////// GET ALL ORDERS OF CERTAIN STATUS ///////////////////////////////////
 
 
     @Test
-    void getOrdersByStatus() {
+    void getOrdersByStatus_Test() {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
         Product product0 = new Product("1", "Apple");
-        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING, null);
+        Order newOrder0 = new Order("1", List.of(product0), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
         Product product1 = new Product("2", "Banana");
-        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING, null);
+        Order newOrder1 = new Order("2", List.of(product1), OrderStatus.PROCESSING,
+                ZonedDateTime.now());
         Product product2 = new Product("3", "Orange");
-        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.COMPLETED, null);
+        Order newOrder2 = new Order("3", List.of(product2), OrderStatus.COMPLETED,
+                ZonedDateTime.now());
         Product product3 = new Product("4", "Pear");
-        Order newOrder3 = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY, null);
+        Order newOrder3 = new Order("4", List.of(product3), OrderStatus.IN_DELIVERY,
+                ZonedDateTime.now());
         repo.addOrder(newOrder0);
         repo.addOrder(newOrder1);
         repo.addOrder(newOrder2);
@@ -120,7 +172,7 @@ class ShopServiceTest {
         List<Order> expected = new ArrayList<>(Arrays.asList(newOrder0, newOrder1));
         List<Order> actual = null;
         try {
-            actual = shopService.getOrdersByStatus(OrderStatus.PROCESSING);
+            actual = shopService.getAllOrdersOfCertainStatus(OrderStatus.PROCESSING);
         } catch (Exception exception) {
         }
         assertEquals(expected, actual);
@@ -137,7 +189,7 @@ class ShopServiceTest {
     }
 
     @Test
-    void updateOrder() {
+    void updateOrder_Test() {
         ShopService shopService = new ShopService();
         OrderRepo repo = new OrderMapRepo();
         Product product0 = new Product("1", "Apple");

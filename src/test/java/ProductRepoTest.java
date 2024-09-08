@@ -35,13 +35,13 @@ class ProductRepoTest {
     void addProduct() {
         //GIVEN
         ProductRepo repo = new ProductRepo();
-        Product newProduct = new Product("2", "Banane");
+        Product newProduct = new Product("2", "Banana");
 
         //WHEN
         Product actual = repo.addProduct(newProduct);
 
         //THEN
-        Optional<Product> expected = Optional.of(new Product("2", "Banane"));
+        Optional<Product> expected = Optional.of(new Product("2", "Banana"));
         assertEquals(repo.getProductById("2"), expected);
     }
 
