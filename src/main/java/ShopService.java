@@ -13,27 +13,9 @@ public class ShopService {
     private OrderRepo orderRepo = new OrderMapRepo();
 
     public Map<OrderStatus, Order> getOldestOrdersPerStatus() throws OrderDoesntExistException {
-        Order oldestOrderInDelivery = null;
-        Order oldestProcessedOrder = null;
-        Order oldestCompletedOrder = null;
-        try {
-            oldestOrderInDelivery = getOldestOrderOfCertainStatus(OrderStatus.IN_DELIVERY);
-        } catch (OrderDoesntExistException exception) {
-            System.out.println("No order of status in delivery found.");
-        }
-        ;
-        try {
-            oldestProcessedOrder = getOldestOrderOfCertainStatus(OrderStatus.PROCESSING);
-        } catch (OrderDoesntExistException exception) {
-            System.out.println("No order of status processing found.");
-        }
-        ;
-        try {
-            oldestCompletedOrder = getOldestOrderOfCertainStatus(OrderStatus.COMPLETED);
-        } catch (OrderDoesntExistException exception) {
-            System.out.println("No order of status completed found.");
-        }
-        ;
+        Order oldestOrderInDelivery = getOldestOrderOfCertainStatus(OrderStatus.IN_DELIVERY);
+        Order oldestProcessedOrder = getOldestOrderOfCertainStatus(OrderStatus.PROCESSING);
+        Order oldestCompletedOrder = getOldestOrderOfCertainStatus(OrderStatus.COMPLETED);
         Map<OrderStatus, Order> oldestOrdersPerStatus = new HashMap<>();
         if (oldestCompletedOrder != null) {
             oldestOrdersPerStatus.put(OrderStatus.COMPLETED, oldestCompletedOrder);
@@ -53,18 +35,7 @@ public class ShopService {
     }
 
     public Optional<Order> getOldestOrder(List<Order> orders) {
-        List<ZonedDateTime> timeStamps = orders.stream().map(order -> order.ordered())
-                .collect(Collectors.toList());
-        ZonedDateTime oldest = null;
-        try {
-            oldest = Collections.min(timeStamps);
-        } catch (Exception exception) {
-            return Optional.empty();
-        }
-        final ZonedDateTime finalOldest = oldest;
-        Order oldestOrder = orders.stream().filter(order -> order.ordered().equals(finalOldest))
-                .collect(Collectors.toList()).get(0);
-        return Optional.of(oldestOrder);
+        return orders.stream().min(Comparator.comparing(Order::ordered));
     }
 
     public List<Order> getAllOrdersOfCertainStatus(OrderStatus requiredStatus) {
